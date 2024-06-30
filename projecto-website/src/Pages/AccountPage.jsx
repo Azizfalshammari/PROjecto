@@ -13,6 +13,7 @@ const AccountPage = () => {
   const [signupPassword, setSignupPassword] = useState('');
   const [isLoginForm, setIsLoginForm] = useState(true);
   const [alertMessage, setAlertMessage] = useState('');
+  const [fieldError, setFieldError] = useState({});
 
   useEffect(() => {
     axios.get('https://665855e85c3617052647fe40.mockapi.io/USERS')
@@ -24,21 +25,21 @@ const AccountPage = () => {
     e.preventDefault();
     const user = users.find(u => u.email === loginEmail && u.password === loginPassword);
     if (user) {
+      localStorage.setItem('isAdmin', user.isAdmin ? 'true' : 'false');
+      localStorage.setItem('user', JSON.stringify(user));
       setAlertMessage('Logged in successfully!');
-      if (user.isAdmin) {
+      setTimeout(() => {
         navigate('/dashboard');
-      } else {
-        navigate('/users');
-      }
+      }, 1000);
     } else {
-      setAlertMessage('Invalid credentials');
+      setFieldError({ login: 'Invalid credentials' });
     }
   };
 
   const handleSignup = (e) => {
     e.preventDefault();
     if (!signupEmail.endsWith('@tuwaiq.edu.sa')) {
-      setAlertMessage('Email must end with @tuwaiq.edu.sa');
+      setFieldError({ signupEmail: 'Email must end with @tuwaiq.edu.sa' });
       return;
     }
 
@@ -47,7 +48,7 @@ const AccountPage = () => {
       lastName: signupLastName,
       email: signupEmail,
       password: signupPassword,
-      isAdmin: false,
+      isAdmin: signupEmail.startsWith('admin'),
       isUser: true,
       ProjectId: null,
     };
@@ -63,6 +64,7 @@ const AccountPage = () => {
 
   const toggleForm = () => {
     setIsLoginForm(!isLoginForm);
+    setFieldError({});
   };
 
   return (
@@ -71,25 +73,10 @@ const AccountPage = () => {
       <div className="drawer-content">
         <div className="navbar bg-base-100">
           <div className="flex-1">
-            <a className="btn btn-ghost text-xl">daisyUI</a>
-          </div>
-          <div className="flex-none">
-            <label htmlFor="my-drawer-4" className="btn btn-square btn-ghost">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                className="inline-block h-5 w-5 stroke-current">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path>
-              </svg>
-            </label>
+            <a className="btn btn-ghost text-xl">Project Management</a>
           </div>
         </div>
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-base-100">
           {alertMessage && (
             <div role="alert" className="alert alert-info mb-4">
               <svg
@@ -124,6 +111,7 @@ const AccountPage = () => {
                     className="input input-bordered w-full max-w-xs"
                     required
                   />
+                  {fieldError.login && <span className="text-red-500">{fieldError.login}</span>}
                 </label>
                 <label className="form-control w-full max-w-xs">
                   <div className="label">
@@ -139,6 +127,7 @@ const AccountPage = () => {
                     className="input input-bordered w-full max-w-xs"
                     required
                   />
+                  {fieldError.login && <span className="text-red-500">{fieldError.login}</span>}
                 </label>
                 <div className="flex items-center justify-between mt-4">
                   <button type="submit" className="btn btn-primary">
@@ -195,6 +184,7 @@ const AccountPage = () => {
                     className="input input-bordered w-full max-w-xs"
                     required
                   />
+                  {fieldError.signupEmail && <span className="text-red-500">{fieldError.signupEmail}</span>}
                 </label>
                 <label className="form-control w-full max-w-xs">
                   <div className="label">
@@ -223,20 +213,6 @@ const AccountPage = () => {
             )}
           </div>
         </div>
-      </div>
-      <div className="drawer-side">
-        <label htmlFor="my-drawer-4" className="drawer-overlay"></label>
-        <ul className="menu bg-base-200 text-base-content min-h-full w-80 p-4">
-          <li>
-            <a onClick={() => navigate('/dashboard')}>Dashboard</a>
-          </li>
-          <li>
-            <a onClick={() => navigate('/users')}>Users</a>
-          </li>
-          <li>
-            <button onClick={() => navigate('/')}>Logout</button>
-          </li>
-        </ul>
       </div>
     </div>
   );

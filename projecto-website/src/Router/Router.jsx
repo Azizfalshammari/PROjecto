@@ -2,6 +2,10 @@ import React from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import LandingPage from '../Pages/LandingPage';
 import AccountPage from '../Pages/AccountPage';
+import AdminDashboard from '../Pages/AdminDashboard';
+import ProjectPage from '../Pages/ProjectPage';
+import StudentDashboard from '../Pages/StudentDashboard';
+import ProfilePage from '../Pages/ProfilePage';
 
 const router = createBrowserRouter([
   {
@@ -14,16 +18,30 @@ const router = createBrowserRouter([
   },
   {
     path: '/dashboard',
-    element: <div>Dashboard</div>, // Replace with actual Dashboard component
+    element: localStorage.getItem('isAdmin') === 'true' ? <AdminDashboard /> : <StudentDashboard />,
   },
   {
-    path: '/users',
-    element: <div>Users Page</div>, // Replace with actual UsersPage component
+    path: '/project/:id',
+    element: <ProjectPage />,
+  },
+  {
+    path: '/profile/:id',
+    element: <ProfilePage />,
   },
 ]);
 
 function Router() {
-  return <RouterProvider router={router} />;
+  const [loggedInUser, setLoggedInUser] = React.useState(JSON.parse(localStorage.getItem('user')));
+
+  return (
+    <RouterProvider router={router}>
+      {loggedInUser && (
+        <div>
+          {localStorage.getItem('isAdmin') === 'true' ? <AdminDashboard user={loggedInUser} /> : <StudentDashboard user={loggedInUser} />}
+        </div>
+      )}
+    </RouterProvider>
+  );
 }
 
 export default Router;
