@@ -1,18 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [alertMessage, setAlertMessage] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [newProjectName, setNewProjectName] = useState('');
-  const [newProjectDescription, setNewProjectDescription] = useState('');
+  const [alertMessage, setAlertMessage] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [newProjectName, setNewProjectName] = useState("");
+  const [newProjectDescription, setNewProjectDescription] = useState("");
   const [editProjectId, setEditProjectId] = useState(null);
-  const [rejectionReason, setRejectionReason] = useState('');
-  const user = JSON.parse(localStorage.getItem('user'));
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [showApproved, setShowApproved] = useState(false);
+  const user = JSON.parse(localStorage.getItem("user"));
 
   useEffect(() => {
     fetchProjects();
@@ -20,13 +21,14 @@ const StudentDashboard = () => {
 
   const fetchProjects = () => {
     setLoading(true);
-    axios.get('https://665855e85c3617052647fe40.mockapi.io/Projects')
-      .then(response => {
+    axios
+      .get("https://665855e85c3617052647fe40.mockapi.io/Projects")
+      .then((response) => {
         setProjects(response.data);
         setLoading(false);
       })
-      .catch(error => {
-        console.error('Error fetching projects:', error);
+      .catch((error) => {
+        console.error("Error fetching projects:", error);
         setLoading(false);
       });
   };
@@ -36,27 +38,37 @@ const StudentDashboard = () => {
     const projectData = {
       name: newProjectName,
       description: newProjectDescription,
-      status: 'waiting',
+      status: "waiting",
       user: user.email,
     };
 
     const apiCall = editProjectId
-      ? axios.put(`https://665855e85c3617052647fe40.mockapi.io/Projects/${editProjectId}`, projectData)
-      : axios.post('https://665855e85c3617052647fe40.mockapi.io/Projects', projectData);
+      ? axios.put(
+          `https://665855e85c3617052647fe40.mockapi.io/Projects/${editProjectId}`,
+          projectData
+        )
+      : axios.post(
+          "https://665855e85c3617052647fe40.mockapi.io/Projects",
+          projectData
+        );
 
     apiCall
       .then(() => {
         fetchProjects();
-        document.getElementById('project_modal').close();
-        setAlertMessage(editProjectId ? 'Project updated successfully!' : 'Project submitted successfully!');
-        setNewProjectName('');
-        setNewProjectDescription('');
+        document.getElementById("project_modal").close();
+        setAlertMessage(
+          editProjectId
+            ? "Project updated successfully!"
+            : "Project submitted successfully!"
+        );
+        setNewProjectName("");
+        setNewProjectDescription("");
         setEditProjectId(null);
-        setRejectionReason('');
-        setTimeout(() => setAlertMessage(''), 3000);
+        setRejectionReason("");
+        setTimeout(() => setAlertMessage(""), 3000);
       })
-      .catch(error => {
-        console.error('Error adding/updating project:', error);
+      .catch((error) => {
+        console.error("Error adding/updating project:", error);
         setLoading(false);
       });
   };
@@ -65,13 +77,18 @@ const StudentDashboard = () => {
     setNewProjectName(project.name);
     setNewProjectDescription(project.description);
     setEditProjectId(project.id);
-    setRejectionReason(project.rejectionReason || '');
-    document.getElementById('project_modal').showModal();
+    setRejectionReason(project.rejectionReason || "");
+    document.getElementById("project_modal").showModal();
   };
 
-  const renderProjects = (status) => (
+  const renderProjects = (status) =>
     projects
-      .filter(project => project.status === status && (project.name?.toLowerCase().includes(searchTerm.toLowerCase()) || project.user?.toLowerCase().includes(searchTerm.toLowerCase())))
+      .filter(
+        (project) =>
+          project.status === status &&
+          (project.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            project.user?.toLowerCase().includes(searchTerm.toLowerCase()))
+      )
       .map((project, index) => (
         <tr key={project.id}>
           <th>{index + 1}</th>
@@ -79,46 +96,70 @@ const StudentDashboard = () => {
           <td>{project.description}</td>
           <td>{project.user}</td>
           <td>
-            <div className={`badge ${status === 'approved' ? 'badge-success' : status === 'rejected' ? 'badge-error' : 'badge-warning'} gap-2`}>
+            <div
+              className={`badge ${
+                status === "approved"
+                  ? "badge-success"
+                  : status === "rejected"
+                  ? "badge-error"
+                  : "badge-warning"
+              } gap-2`}
+            >
               {status}
             </div>
-            {status === 'rejected' && (
+            {status === "rejected" && (
               <>
-                <button className="btn btn-xs btn-secondary ml-2" onClick={() => handleEditProject(project)}>
+                <button
+                  className="btn btn-xs btn-secondary ml-2"
+                  onClick={() => handleEditProject(project)}
+                >
                   Edit
                 </button>
-                <div className="text-sm text-red-500 mt-1">Reason: {project.rejectionReason}</div>
+                <div className="text-sm text-red-500 mt-1">
+                  Reason: {project.rejectionReason}
+                </div>
               </>
             )}
           </td>
         </tr>
-      ))
-  );
+      ));
 
-  const renderUserProjects = () => (
+  const renderUserProjects = () =>
     projects
-      .filter(project => project.user === user.email)
+      .filter((project) => project.user === user.email)
       .map((project, index) => (
         <tr key={project.id}>
           <th>{index + 1}</th>
           <td>{project.name}</td>
           <td>{project.description}</td>
           <td>
-            <div className={`badge ${project.status === 'approved' ? 'badge-success' : project.status === 'rejected' ? 'badge-error' : 'badge-warning'} gap-2`}>
+            <div
+              className={`badge ${
+                project.status === "approved"
+                  ? "badge-success"
+                  : project.status === "rejected"
+                  ? "badge-error"
+                  : "badge-warning"
+              } gap-2`}
+            >
               {project.status}
             </div>
-            {project.status === 'rejected' && (
+            {project.status === "rejected" && (
               <>
-                <button className="btn btn-xs btn-secondary ml-2" onClick={() => handleEditProject(project)}>
+                <button
+                  className="btn btn-xs btn-secondary ml-2"
+                  onClick={() => handleEditProject(project)}
+                >
                   Edit
                 </button>
-                <div className="text-sm text-red-500 mt-1">Reason: {project.rejectionReason}</div>
+                <div className="text-sm text-red-500 mt-1">
+                  Reason: {project.rejectionReason}
+                </div>
               </>
             )}
           </td>
         </tr>
-      ))
-  );
+      ));
 
   return (
     <div className="min-h-screen bg-base-100 p-4">
@@ -127,15 +168,13 @@ const StudentDashboard = () => {
           <a className="btn btn-ghost text-xl">Project Management</a>
         </div>
         <div className="flex-none">
-          <button className="btn" onClick={() => navigate('/')}>Logout</button>
+          <button className="btn" onClick={() => navigate("/")}>
+            Logout
+          </button>
         </div>
       </div>
       <h1 className="text-2xl font-bold mb-4">Student Dashboard</h1>
-      {alertMessage && (
-        <div className="alert mb-4">
-          {alertMessage}
-        </div>
-      )}
+      {alertMessage && <div className="alert mb-4">{alertMessage}</div>}
       <div className="mb-4 flex flex-col md:flex-row justify-between items-center">
         <div className="flex flex-col md:flex-row items-center">
           <input
@@ -145,36 +184,52 @@ const StudentDashboard = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <button className="btn btn-primary" onClick={() => fetchProjects()}>Search</button>
+          <button className="btn btn-primary" onClick={() => fetchProjects()}>
+            Search
+          </button>
         </div>
-        <button className="btn btn-secondary ml-2" onClick={() => {
-          setEditProjectId(null);
-          setNewProjectName('');
-          setNewProjectDescription('');
-          setRejectionReason('');
-          document.getElementById('project_modal').showModal();
-        }}>
+        <button
+          className="btn btn-secondary ml-2"
+          onClick={() => {
+            setEditProjectId(null);
+            setNewProjectName("");
+            setNewProjectDescription("");
+            setRejectionReason("");
+            document.getElementById("project_modal").showModal();
+          }}
+        >
           Add New Project
         </button>
       </div>
       <div>
-        <h2 className="text-xl font-bold mb-2">Approved Projects</h2>
-        <div className="overflow-x-auto">
-          <table className="table w-full">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Project Name</th>
-                <th>Description</th>
-                <th>User</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {renderProjects('approved')}
-            </tbody>
-          </table>
-        </div>
+        <button
+          className="btn btn-primary mb-4"
+          onClick={() => setShowApproved(!showApproved)}
+        >
+          {showApproved
+            ? "Hide All Approved Projects"
+            : "Show All Approved Projects"}
+        </button>
+
+        {showApproved && (
+          <div>
+            <h2 className="text-xl font-bold mb-2">Approved Projects</h2>
+            <div className="overflow-x-auto">
+              <table className="table w-full">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Project Name</th>
+                    <th>Description</th>
+                    <th>User</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>{renderProjects("approved")}</tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
       <div>
         <h2 className="text-xl font-bold mb-2">My Projects</h2>
@@ -188,16 +243,16 @@ const StudentDashboard = () => {
                 <th>Status</th>
               </tr>
             </thead>
-            <tbody>
-              {renderUserProjects()}
-            </tbody>
+            <tbody>{renderUserProjects()}</tbody>
           </table>
         </div>
       </div>
       {/* Modal for adding or editing project */}
       <dialog id="project_modal" className="modal">
         <div className="modal-box">
-          <h3 className="font-bold text-lg">{editProjectId ? 'Edit Project' : 'Add New Project'}</h3>
+          <h3 className="font-bold text-lg">
+            {editProjectId ? "Edit Project" : "Add New Project"}
+          </h3>
           <input
             type="text"
             placeholder="Enter project name"
@@ -217,8 +272,18 @@ const StudentDashboard = () => {
             </div>
           )}
           <div className="modal-action">
-            <button className="btn" onClick={() => document.getElementById('project_modal').close()}>Cancel</button>
-            <button className="btn btn-primary" onClick={handleAddOrUpdateProject}>{editProjectId ? 'Update' : 'Submit'}</button>
+            <button
+              className="btn"
+              onClick={() => document.getElementById("project_modal").close()}
+            >
+              Cancel
+            </button>
+            <button
+              className="btn btn-primary"
+              onClick={handleAddOrUpdateProject}
+            >
+              {editProjectId ? "Update" : "Submit"}
+            </button>
           </div>
         </div>
       </dialog>
